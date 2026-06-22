@@ -187,8 +187,6 @@ MIT — do whatever you want, just don't be evil.
 
 <div align="center">
 
-Made for the recon grind. Stay legal. Stay curious.
 
-**[⬆ back to top](#)**
 
 </div>
