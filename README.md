@@ -1,125 +1,194 @@
-# 🟢 Google/Bing Dorker
+<div align="center">
 
-A modern, dark‑themed **Dorking tool** built with pure **HTML, CSS, and JavaScript**.
+```
+██████╗  ██████╗ ██████╗ ██╗  ██╗███████╗██████╗
+██╔══██╗██╔═══██╗██╔══██╗██║ ██╔╝██╔════╝██╔══██╗
+██║  ██║██║   ██║██████╔╝█████╔╝ █████╗  ██████╔╝
+██║  ██║██║   ██║██╔══██╗██╔═██╗ ██╔══╝  ██╔══██╗
+██████╔╝╚██████╔╝██║  ██║██║  ██╗███████╗██║  ██║
+╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+```
 
-This project is designed for **security researchers, bug bounty hunters, penetration testers, and students** who want a clean and fast way to generate and run Google dorks against a target domain.
+**A clean, offline-first Google Dorking tool for security researchers and bug bounty hunters.**
 
----
+![HTML](https://img.shields.io/badge/HTML-single%20file-orange?style=flat-square&logo=html5)
+![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square)
+![Offline](https://img.shields.io/badge/works-offline-blue?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-purple?style=flat-square)
 
-## ✨ Features
-
-* 🔍 Live Google Dork generation
-* 🌑 Dark hacker‑style UI with green accent
-* ⚡ Instant update on input change
-* 🧠 Carefully selected common reconnaissance dorks
-* 🔗 One‑click open dorks in Google
-* 🧩 Easily extensible (add your own dorks)
-* 🚫 No frameworks, no dependencies
-
----
-
-## 📸 Preview
-
-![Color Spectrum Output](bing.png)
+</div>
 
 ---
 
-## 🚀 Usage
+## What is this?
 
-1. Clone or download the repository
+**Dorker** is a single HTML file that turns raw Google Dork patterns into one-click search links — no backend, no API keys, no install. Just open it in your browser and start recon.
+
+Designed for **bug bounty hunters**, **pentesters**, and **security researchers** who want a fast, organized interface for passive reconnaissance without juggling bookmarks or remembering dork syntax by heart.
+
+---
+
+## Features
+
+| Feature | Description |
+|---|---|
+| 🔍 **Multi-Engine** | Google · Bing · DuckDuckGo · Brave Search · Yandex |
+| 🗂️ **Categories** | Dorks organized by type — Recon, Files, Redirect, Secrets, Vulns |
+| ✏️ **Custom Dorks** | Add your own dork patterns to any category |
+| 📁 **Custom Categories** | Create new categories to match your workflow |
+| ⎘ **Quick Copy** | Copy any dork to clipboard in one click |
+| 💾 **Persistent Storage** | Everything saved in localStorage — survives browser restarts |
+| 🎨 **Theme per Engine** | Each search engine has its own color theme |
+| 📦 **Zero Dependencies** | Pure HTML + CSS + JS, no frameworks, no npm, no build step |
+| ✈️ **Offline Ready** | Works completely offline after the first open |
+
+---
+
+## Preview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ● Google                              🟠 Google ▼      │
+│                                                          │
+│           D O R K E R                                    │
+│                                                          │
+│         [ example.com                 ]                  │
+│                                                          │
+│  All  Reconnaissance  Sensitive Files  +New Category     │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ site:example.com inurl:&                    ⎘  ✕ │   │
+│  ├──────────────────────────────────────────────────┤   │
+│  │ site:example.com ext:php | ext:aspx | ...   ⎘  ✕ │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Start
 
 ```bash
-git clone https://github.com/yourusername/google-dorker.git
+git clone https://github.com/yourusername/dorker.git
+cd dorker
+open dorker.html   # macOS
+xdg-open dorker.html  # Linux
+start dorker.html  # Windows
 ```
 
-2. Open the file in your browser
+Or just **[download the file](./dorker.html)** and open it. That's it.
+
+---
+
+## Built-in Dork Categories
+
+### 🔭 Reconnaissance
+General footprinting — exposed pages, CMS fingerprinting, Nginx defaults, public endpoints.
+
+```
+site:{domain} inurl:&
+site:{domain} inurl:wp-content | inurl:wp-admin | inurl:wp-login
+site:{domain} intitle:"welcome to Nginx"
+```
+
+### 📂 Sensitive Files
+Exposed configs, backups, environment files, source control artifacts.
+
+```
+site:{domain} ext:env | ext:bak | ext:log | ext:conf | ext:git | ext:htpasswd
+site:{domain} filetype:pdf | filetype:doc | filetype:xls
+site:{domain} intext:"index of" (passwd|shadow|htpasswd)
+```
+
+### 🔀 Open Redirect
+URL parameters that may redirect to external hosts.
+
+```
+site:{domain} inurl:url= | inurl:return= | inurl:next= | inurl:redir= inurl:http
+```
+
+### 🔑 Secrets & Tokens
+API explorers, swagger docs, exposed credentials in query strings.
+
+```
+site:{domain} inurl:swagger | inurl:api-docs | inurl:api-explorer
+site:{domain} inurl:password= | inurl:secret= | inurl:token= inurl:&
+```
+
+### 🐛 Vulnerabilities
+SQL error messages, LFI-prone paths, CGI scripts.
+
+```
+site:{domain} "SQL syntax" | "mysql_fetch" | "ORA-" | "Warning: pg_"
+site:{domain} inurl:".php?id=" | inurl:".asp?id="
+site:{domain} inurl:"/cgi-bin/" ext:cgi | ext:pl | ext:sh
+```
+
+---
+
+## Adding Custom Dorks
+
+Use `{domain}` as a placeholder — it gets replaced with whatever target you type.
+
+```
+site:{domain} inurl:graphql
+site:{domain} ext:yaml | ext:yml inurl:docker
+site:{domain} "internal use only" | "confidential"
+```
+
+All custom dorks and categories persist in `localStorage` automatically.
+
+---
+
+## Engine Themes
+
+| Engine | Color | URL |
+|---|---|---|
+| Google | 🟠 Orange | `google.com/search` |
+| Bing | 🔵 Blue | `bing.com/search` |
+| DuckDuckGo | 🔴 Red | `duckduckgo.com` |
+| Brave Search | 🟣 Purple | `search.brave.com` |
+| Yandex | 🟡 Yellow | `yandex.com/search` |
+
+---
+
+## Disclaimer
+
+> This tool is intended for **authorized security testing and research only**.  
+> Running dorks against targets you do not have permission to test may violate laws including the Computer Fraud and Abuse Act (CFAA) and equivalent legislation in your jurisdiction.  
+> The author assumes no responsibility for misuse.  
+> **Always get written permission before testing.**
+
+---
+
+## Contributing
+
+PRs are welcome. Ideas worth contributing:
+
+- New dork patterns (with category and description)
+- Additional search engines
+- Export to `.txt` / `.csv`
+- Dark/light mode toggle
+- Dork scoring or severity tagging
 
 ```bash
-cd Google_Bing-Dorker
-open google_dorker.html
-or
-open bing_dorker.html
-```
-
-3. Enter a target domain (example: `example.com`)
-4. Click any generated dork to open it directly in Google
-
----
-
-## 🧠 How It Works
-
-The tool dynamically builds Google search queries (dorks) using the domain you provide.
-
-Example generated dork:
-
-```text
-site:example.com ext:log | ext:txt | ext:env
-```
-
-Each dork is converted into a clickable Google search URL:
-
-```text
-https://www.google.com/search?q=site:example.com+ext:log
+git checkout -b feature/my-dorks
+# add your dorks or feature
+git commit -m "feat: add GraphQL dork patterns"
+git push origin feature/my-dorks
 ```
 
 ---
 
-## ➕ Adding Your Own Google Dorks
+## License
 
-You can easily add your **custom dorks** by editing the JavaScript section.
-
-### Step‑by‑step
-
-1. Open `google_dorker.html` or `bing_dorker.html`
-2. Scroll to the `<script>` section
-3. Find the `dorks` array:
-
-```js
-const dorks = [
-    'site:' + domain + ' inurl:&',
-    'site:' + domain + ' ext:php | ext:aspx | ext:asp',
-    // ...
-];
-```
-
-4. Add your own dork as a new string
-
-### Example: Adding SQL error pages
-
-```js
-'site:' + domain + ' "SQL syntax" | "mysql_fetch" | "ORA-"'
-```
-
-### Example: Exposed admin panels
-
-```js
-'site:' + domain + ' inurl:admin | inurl:login | inurl:dashboard'
-```
-
-✅ Save the file and refresh the page — your new dork will appear automatically.
+MIT — do whatever you want, just don't be evil.
 
 ---
 
-## 📚 Dork Categories You Can Add
+<div align="center">
 
-* 🔐 Authentication pages
-* 🗄️ Backup & config files
-* ☁️ Cloud credentials
-* 🔄 Open redirects
-* 📡 API endpoints
-* 🧪 Debug & test pages
-* 🧑‍💻 Dev / staging environments
+Made for the recon grind. Stay legal. Stay curious.
 
----
+**[⬆ back to top](#)**
 
-## ⚠️ Disclaimer
-
-This tool is intended for **educational and authorized security testing only**.
-
-* Do **not** use it against systems you do not own or have permission to test
-* The author is **not responsible** for misuse or illegal activities
-
-Always follow responsible disclosure and local laws.
-
-
-
+</div>
