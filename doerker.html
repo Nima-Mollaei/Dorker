@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dorker</title>
+    <style>
+        :root {
+            --bg-main: #110a00;
+            --bg-card: #1a1000;
+            --bg-input: #110a00;
+            --border: #2d1e00;
+            --text-main: #ffedd5;
+            --text-muted: #fb923c;
+            --accent: #f97316;
+            --accent-soft: rgba(249,115,22,0.18);
+            --glow: rgba(249,115,22,0.28);
+        }
+        body.bing   { --bg-main:#080d14;--bg-card:#0c1220;--bg-input:#080d14;--border:#1a2840;--text-main:#dbeafe;--text-muted:#93c5fd;--accent:#3b82f6;--accent-soft:rgba(59,130,246,0.18);--glow:rgba(59,130,246,0.28); }
+        body.ddg    { --bg-main:#120306;--bg-card:#1c040a;--bg-input:#120306;--border:#3b0a12;--text-main:#ffe4e6;--text-muted:#f87171;--accent:#ef4444;--accent-soft:rgba(239,68,68,0.18);--glow:rgba(239,68,68,0.28); }
+        body.brave  { --bg-main:#0f0a1a;--bg-card:#180f28;--bg-input:#0f0a1a;--border:#2d1a4a;--text-main:#ede9fe;--text-muted:#a78bfa;--accent:#8b5cf6;--accent-soft:rgba(139,92,246,0.18);--glow:rgba(139,92,246,0.28); }
+        body.yandex { --bg-main:#0a0d00;--bg-card:#131800;--bg-input:#0a0d00;--border:#252e00;--text-main:#fefce8;--text-muted:#facc15;--accent:#eab308;--accent-soft:rgba(234,179,8,0.18);--glow:rgba(234,179,8,0.28); }
+
+        *{box-sizing:border-box;margin:0;padding:0;}
+
+        body {
+            font-family: Inter, Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.45s, color 0.45s;
+            min-height: 100vh;
+        }
+
+        /* ── topbar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 28px 0;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent-soft);
+            transition: all 0.45s;
+        }
+        .badge-dot { width:7px;height:7px;border-radius:50%;background:var(--accent);transition:background 0.45s; }
+
+        .engine-switcher { position: relative; }
+        .switcher-btn {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 50px; padding: 8px 16px; cursor: pointer;
+            color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
+            transition: all 0.25s; user-select: none;
+        }
+        .switcher-btn:hover { border-color: var(--accent); color: var(--text-main); }
+        .chevron { font-size: 0.7rem; transition: transform 0.2s; }
+        .engine-switcher.open .chevron { transform: rotate(180deg); }
+        .dropdown {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; min-width: 180px; z-index: 99;
+        }
+        .engine-switcher.open .dropdown { display: block; }
+        .dropdown-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 16px; cursor: pointer; font-size: 0.88rem;
+            color: var(--text-main); background: transparent;
+            border: none; width: 100%; text-align: left; transition: background 0.15s;
+        }
+        .dropdown-item:hover { background: var(--accent-soft); }
+        .dropdown-item.active { color: var(--accent); font-weight: 600; }
+        .dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+
+        /* ── main ── */
+        .container { max-width: 960px; margin: 28px auto; padding: 0 20px 60px; }
+
+        h1 {
+            text-align: center; font-size: 2.1rem; letter-spacing: 1px;
+            color: var(--accent); text-shadow: 0 0 18px var(--glow);
+            transition: color 0.45s, text-shadow 0.45s; margin-bottom: 24px;
+        }
+
+        .search-box { display: flex; justify-content: center; margin-bottom: 24px; }
+        input[type="text"] {
+            width: 100%; max-width: 500px; padding: 13px 16px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-main); font-size: 1rem;
+            outline: none; transition: border 0.2s, box-shadow 0.2s, background 0.45s;
+        }
+        input::placeholder { color: var(--accent); opacity: 0.45; }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft), 0 0 18px var(--accent-soft); }
+
+        /* ── category tabs ── */
+        .cat-bar {
+            display: flex; align-items: center; gap: 8px;
+            flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .cat-tab {
+            padding: 6px 16px; border-radius: 50px; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; border: 1px solid var(--border); background: var(--bg-card);
+            color: var(--text-muted); transition: all 0.2s; user-select: none;
+        }
+        .cat-tab:hover { border-color: var(--accent); color: var(--text-main); }
+        .cat-tab.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+        .cat-tab.all { font-weight: 600; }
+
+        .add-cat-btn {
+            padding: 6px 14px; border-radius: 50px; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; border: 1px dashed var(--border); background: transparent;
+            color: var(--text-muted); transition: all 0.2s; user-select: none;
+        }
+        .add-cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── dork cards ── */
+        .results { display: flex; flex-direction: column; gap: 10px; }
+
+        .dork-card {
+            display: flex; align-items: stretch;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 10px; overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.15s, border 0.15s, background 0.45s;
+            opacity: 0; animation: fadeUp 0.25s ease forwards;
+        }
+        .dork-card:hover {
+            border-color: var(--accent); transform: translateY(-2px);
+            box-shadow: 0 0 0 1px var(--accent-soft), 0 10px 24px rgba(0,0,0,0.55);
+        }
+        .dork-link {
+            flex: 1; padding: 13px 15px; text-decoration: none; color: var(--text-main);
+            font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.88rem;
+            line-height: 1.6; word-break: break-word; overflow-wrap: anywhere;
+        }
+        .card-actions {
+            display: flex; flex-direction: column; gap: 0;
+            border-left: 1px solid var(--border); flex-shrink: 0;
+        }
+        .card-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 42px; flex: 1; background: transparent; border: none;
+            cursor: pointer; color: var(--text-muted); font-size: 0.85rem;
+            transition: background 0.15s, color 0.15s;
+        }
+        .card-btn:hover { background: var(--accent-soft); color: var(--accent); }
+        .card-btn + .card-btn { border-top: 1px solid var(--border); }
+        .card-btn.copied { color: #4ade80; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── add dork panel ── */
+        .add-dork-bar {
+            display: flex; gap: 10px; align-items: center;
+            margin-bottom: 18px; flex-wrap: wrap;
+        }
+        .add-dork-bar input[type="text"] {
+            max-width: 100%; flex: 1; padding: 10px 14px; font-size: 0.9rem;
+        }
+        .add-dork-bar select {
+            padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-main); font-size: 0.9rem; outline: none;
+            cursor: pointer; transition: border 0.2s, background 0.45s;
+        }
+        .add-dork-bar select:focus { border-color: var(--accent); }
+        .add-dork-bar select option { background: var(--bg-card); }
+        .primary-btn {
+            padding: 10px 20px; background: var(--accent-soft); border: 1px solid var(--accent);
+            border-radius: 8px; color: var(--accent); font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .primary-btn:hover { background: var(--accent); color: var(--bg-main); }
+
+        /* ── modal ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); z-index: 200;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 28px; width: 360px; max-width: 90vw;
+        }
+        .modal h2 { font-size: 1.1rem; margin-bottom: 18px; color: var(--text-main); }
+        .modal input[type="text"] { width: 100%; max-width: 100%; margin-bottom: 14px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .ghost-btn {
+            padding: 9px 18px; background: transparent; border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-muted); font-size: 0.88rem; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ghost-btn:hover { border-color: var(--accent); color: var(--text-main); }
+
+        /* ── section header ── */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .section-title {
+            font-size: 0.78rem; font-weight: 600; letter-spacing: 0.8px;
+            text-transform: uppercase; color: var(--text-muted); opacity: 0.7;
+        }
+        .delete-cat-btn {
+            font-size: 0.75rem; color: var(--text-muted); background: transparent;
+            border: none; cursor: pointer; opacity: 0.5; transition: opacity 0.2s;
+        }
+        .delete-cat-btn:hover { opacity: 1; color: #ef4444; }
+
+        .empty-state {
+            text-align: center; padding: 40px 20px;
+            color: var(--text-muted); opacity: 0.5; font-size: 0.9rem;
+        }
+
+        .footer { text-align: center; margin-top: 40px; font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; }
+
+        @media(max-width:600px){ h1{font-size:1.6rem;} .topbar{padding:12px 16px 0;} }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="badge" id="engineBadge">
+        <span class="badge-dot"></span>
+        <span id="badgeLabel">Google</span>
+    </div>
+    <div class="engine-switcher" id="switcher">
+        <button class="switcher-btn" onclick="toggleDropdown()">
+            <span id="switcherIcon">🟠</span>
+            <span id="switcherLabel">Google</span>
+            <span class="chevron">▼</span>
+        </button>
+        <div class="dropdown" id="dropdown">
+            <button class="dropdown-item active" onclick="setEngine('google')" data-engine="google"><span class="dot" style="background:#f97316"></span> Google</button>
+            <button class="dropdown-item" onclick="setEngine('bing')"   data-engine="bing">  <span class="dot" style="background:#3b82f6"></span> Bing</button>
+            <button class="dropdown-item" onclick="setEngine('ddg')"    data-engine="ddg">   <span class="dot" style="background:#ef4444"></span> DuckDuckGo</button>
+            <button class="dropdown-item" onclick="setEngine('brave')"  data-engine="brave"> <span class="dot" style="background:#8b5cf6"></span> Brave Search</button>
+            <button class="dropdown-item" onclick="setEngine('yandex')" data-engine="yandex"><span class="dot" style="background:#eab308"></span> Yandex</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1 id="title">Google Dorker</h1>
+
+    <div class="search-box">
+        <input type="text" id="domain" value="example.com" placeholder="target domain (example.com)" oninput="renderAll()">
+    </div>
+
+    <!-- category tabs -->
+    <div class="cat-bar" id="catBar"></div>
+
+    <!-- add dork row -->
+    <div class="add-dork-bar">
+        <input type="text" id="newDorkInput" placeholder='site:{domain} inurl:admin  (use {domain} as placeholder)'>
+        <select id="newDorkCat"></select>
+        <button class="primary-btn" onclick="addCustomDork()">+ Add Dork</button>
+    </div>
+
+    <div class="results" id="results"></div>
+    <div class="footer">Reconnaissance &bull; Dorking &bull; Security Research</div>
+</div>
+
+<!-- new category modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h2>New Category</h2>
+        <input type="text" id="catNameInput" placeholder="Category name…" onkeydown="if(event.key==='Enter')confirmAddCat()">
+        <div class="modal-actions">
+            <button class="ghost-btn" onclick="closeModal()">Cancel</button>
+            <button class="primary-btn" onclick="confirmAddCat()">Create</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const engines = {
+    google: { label:'Google', icon:'🟠', cls:'',      url: q=>'https://www.google.com/search?q='+encodeURIComponent(q) },
+    bing:   { label:'Bing',   icon:'🔵', cls:'bing',   url: q=>'https://www.bing.com/search?q='+encodeURIComponent(q) },
+    ddg:    { label:'DuckDuckGo', icon:'🔴', cls:'ddg', url: q=>'https://duckduckgo.com/?q='+encodeURIComponent(q) },
+    brave:  { label:'Brave Search', icon:'🟣', cls:'brave', url: q=>'https://search.brave.com/search?q='+encodeURIComponent(q) },
+    yandex: { label:'Yandex', icon:'🟡', cls:'yandex', url: q=>'https://yandex.com/search/?text='+encodeURIComponent(q) },
+};
+let currentEngine = 'google';
+
+// ── default categories & dorks ──
+const defaultCategories = [
+    {
+        id: 'recon', name: 'Reconnaissance', builtin: true,
+        dorks: [
+            'site:{domain} inurl:&',
+            'site:{domain} ext:php | ext:aspx | ext:asp | ext:jsp | ext:html | ext:htm',
+            'site:{domain} inurl:(unsubscribe|register|feedback|signup|join|contact|profile|user|comment|api|developer|affiliate|upload|mobile|upgrade|password)',
+            'site:{domain} intitle:"welcome to Nginx"',
+            'site:{domain} inurl:wp-content | inurl:wp-admin | inurl:wp-login',
+        ]
+    },
+    {
+        id: 'files', name: 'Sensitive Files', builtin: true,
+        dorks: [
+            'site:{domain} ext:log | ext:txt | ext:conf | ext:cnf | ext:ini | ext:env | ext:sh | ext:bak | ext:backup | ext:swp | ext:old | ext:~ | ext:git | ext:svn | ext:htpasswd | ext:htaccess | ext:xml',
+            'site:{domain} filetype:pdf | filetype:doc | filetype:docx | filetype:xls | filetype:xlsx',
+            'site:{domain} intext:"index of" (passwd|shadow|htpasswd)',
+            'site:{domain} inurl:config | inurl:env | inurl:setting | inurl:backup | inurl:admin | inurl:php',
+        ]
+    },
+    {
+        id: 'redirect', name: 'Open Redirect', builtin: true,
+        dorks: [
+            'site:{domain} inurl:url= | inurl:return= | inurl:next= | inurl:redir= inurl:http',
+            'site:{domain} inurl:http | inurl:url= | inurl:dest= | inurl:html= | inurl:data= | inurl:domain= | inurl:page= inurl:&',
+        ]
+    },
+    {
+        id: 'secrets', name: 'Secrets & Tokens', builtin: true,
+        dorks: [
+            'site:{domain} inurl:email= | inurl:phone= | inurl:password= | inurl:secret= inurl:&',
+            'site:{domain} inurl:apidocs | inurl:api-docs | inurl:swagger | inurl:api-explorer',
+            'site:{domain} inurl:cmd | inurl:exec= | inurl:query= | inurl:code= | inurl:do= | inurl:run= | inurl:read= | inurl:ping= inurl:&',
+        ]
+    },
+    {
+        id: 'vulns', name: 'Vulnerabilities', builtin: true,
+        dorks: [
+            'site:{domain} "SQL syntax" | "mysql_fetch" | "ORA-" | "Warning: pg_"',
+            'site:{domain} inurl:".php?id=" | inurl:".asp?id=" | inurl:".jsp?id="',
+            'site:{domain} inurl:"/cgi-bin/" ext:cgi | ext:pl | ext:sh',
+        ]
+    },
+];
+
+// load from localStorage or use defaults
+function loadState() {
+    try {
+        const saved = localStorage.getItem('dorker_cats');
+        return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultCategories));
+    } catch(e) { return JSON.parse(JSON.stringify(defaultCategories)); }
+}
+function saveState() {
+    localStorage.setItem('dorker_cats', JSON.stringify(categories));
+}
+
+let categories = loadState();
+let activeTab = 'all';
+
+// ── engine switcher ──
+function toggleDropdown() { document.getElementById('switcher').classList.toggle('open'); }
+document.addEventListener('click', e => {
+    const sw = document.getElementById('switcher');
+    if (!sw.contains(e.target)) sw.classList.remove('open');
+});
+function setEngine(key) {
+    currentEngine = key;
+    const eng = engines[key];
+    document.body.className = eng.cls;
+    document.getElementById('title').textContent = eng.label + ' Dorker';
+    document.getElementById('switcherIcon').textContent = eng.icon;
+    document.getElementById('switcherLabel').textContent = eng.label;
+    document.getElementById('badgeLabel').textContent = eng.label;
+    document.querySelectorAll('.dropdown-item').forEach(b => b.classList.toggle('active', b.dataset.engine===key));
+    document.getElementById('switcher').classList.remove('open');
+    renderAll();
+}
+
+// ── tabs ──
+function renderTabs() {
+    const bar = document.getElementById('catBar');
+    bar.innerHTML = '';
+
+    // All tab
+    const all = document.createElement('div');
+    all.className = 'cat-tab all' + (activeTab==='all'?' active':'');
+    all.textContent = 'All';
+    all.onclick = () => { activeTab='all'; renderTabs(); renderCards(); };
+    bar.appendChild(all);
+
+    categories.forEach(cat => {
+        const t = document.createElement('div');
+        t.className = 'cat-tab' + (activeTab===cat.id?' active':'');
+        t.textContent = cat.name;
+        t.onclick = () => { activeTab=cat.id; renderTabs(); renderCards(); };
+        bar.appendChild(t);
+    });
+
+    // + new category
+    const addBtn = document.createElement('div');
+    addBtn.className = 'add-cat-btn';
+    addBtn.textContent = '+ New Category';
+    addBtn.onclick = openModal;
+    bar.appendChild(addBtn);
+
+    // update select in add-dork-bar
+    const sel = document.getElementById('newDorkCat');
+    sel.innerHTML = '';
+    categories.forEach(cat => {
+        const o = document.createElement('option');
+        o.value = cat.id; o.textContent = cat.name;
+        sel.appendChild(o);
+    });
+}
+
+// ── cards ──
+function renderCards() {
+    const domain = document.getElementById('domain').value.trim() || 'example.com';
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+
+    const catsToShow = activeTab==='all' ? categories : categories.filter(c=>c.id===activeTab);
+
+    if (catsToShow.length === 0 || catsToShow.every(c=>c.dorks.length===0)) {
+        resultsDiv.innerHTML = '<div class="empty-state">No dorks here yet.<br>Add one using the bar above.</div>';
+        return;
+    }
+
+    let idx = 0;
+    catsToShow.forEach(cat => {
+        if (cat.dorks.length === 0) return;
+
+        // section header
+        const hdr = document.createElement('div');
+        hdr.className = 'section-header';
+        hdr.style.marginTop = idx > 0 ? '22px' : '0';
+        const ttl = document.createElement('div');
+        ttl.className = 'section-title';
+        ttl.textContent = cat.name;
+        hdr.appendChild(ttl);
+        if (!cat.builtin) {
+            const del = document.createElement('button');
+            del.className = 'delete-cat-btn';
+            del.textContent = '✕ Delete Category';
+            del.onclick = () => deleteCategory(cat.id);
+            hdr.appendChild(del);
+        }
+        resultsDiv.appendChild(hdr);
+
+        cat.dorks.forEach((tpl, di) => {
+            const dork = tpl.replace(/{domain}/g, domain);
+            const card = document.createElement('div');
+            card.className = 'dork-card';
+            card.style.animationDelay = (idx * 28) + 'ms';
+
+            const link = document.createElement('a');
+            link.className = 'dork-link';
+            link.href = engines[currentEngine].url(dork);
+            link.target = '_blank';
+            link.textContent = dork;
+
+            const actions = document.createElement('div');
+            actions.className = 'card-actions';
+
+            // copy btn
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'card-btn';
+            copyBtn.title = 'Copy';
+            copyBtn.innerHTML = '⎘';
+            copyBtn.onclick = e => {
+                e.preventDefault();
+                navigator.clipboard.writeText(dork).then(() => {
+                    copyBtn.classList.add('copied');
+                    copyBtn.innerHTML = '✓';
+                    setTimeout(() => { copyBtn.classList.remove('copied'); copyBtn.innerHTML='⎘'; }, 1500);
+                });
+            };
+            actions.appendChild(copyBtn);
+
+            // delete btn (only for custom dorks, or all if not builtin)
+            const delBtn = document.createElement('button');
+            delBtn.className = 'card-btn';
+            delBtn.title = 'Delete';
+            delBtn.innerHTML = '✕';
+            delBtn.style.fontSize = '0.75rem';
+            delBtn.onclick = e => { e.preventDefault(); deleteDork(cat.id, di); };
+            actions.appendChild(delBtn);
+
+            card.appendChild(link);
+            card.appendChild(actions);
+            resultsDiv.appendChild(card);
+            idx++;
+        });
+    });
+}
+
+function renderAll() { renderTabs(); renderCards(); }
+
+// ── add custom dork ──
+function addCustomDork() {
+    const input = document.getElementById('newDorkInput');
+    const catId = document.getElementById('newDorkCat').value;
+    const val = input.value.trim();
+    if (!val) return;
+    const cat = categories.find(c=>c.id===catId);
+    if (!cat) return;
+    cat.dorks.push(val);
+    input.value = '';
+    saveState();
+    renderAll();
+}
+
+// ── delete dork ──
+function deleteDork(catId, dorkIdx) {
+    const cat = categories.find(c=>c.id===catId);
+    if (!cat) return;
+    cat.dorks.splice(dorkIdx, 1);
+    saveState();
+    renderAll();
+}
+
+// ── delete category ──
+function deleteCategory(catId) {
+    categories = categories.filter(c=>c.id!==catId);
+    if (activeTab === catId) activeTab = 'all';
+    saveState();
+    renderAll();
+}
+
+// ── modal ──
+function openModal() {
+    document.getElementById('modalOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('catNameInput').focus(), 50);
+}
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    document.getElementById('catNameInput').value = '';
+}
+function confirmAddCat() {
+    const name = document.getElementById('catNameInput').value.trim();
+    if (!name) return;
+    const id = 'cat_' + Date.now();
+    categories.push({ id, name, builtin: false, dorks: [] });
+    saveState();
+    activeTab = id;
+    closeModal();
+    renderAll();
+}
+document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+
+// ── init ──
+renderAll();
+</script>
+</body>
+</html>
