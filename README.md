@@ -185,8 +185,4 @@ MIT — do whatever you want, just don't be evil.
 
 ---
 
-<div align="center">
 
-
-
-</div>
